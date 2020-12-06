@@ -2,7 +2,11 @@ import React from 'react';
 import { render } from 'react-dom';
 import HomePage from './HomePage';
 function App() {
-  return <HomePage />;
+  return (
+    <div className='center'>
+      <HomePage />
+    </div>
+  );
 }
 
 const appDiv = document.getElementById('app');
