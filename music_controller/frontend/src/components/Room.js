@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Grid, Button, Typography } from '@material-ui/core';
 import axios from 'axios';
 import CreateRoomPage from './CreateRoomPage';
+import MusicPlayer from './MusicPlayer';
+
 function Room({ leaveRoomCallback, ...props }) {
   const defaultVotes = 2;
   const [guestCanPause, setGuestCanPause] = useState(false);
@@ -9,6 +11,7 @@ function Room({ leaveRoomCallback, ...props }) {
   const [isHost, setIsHost] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [spotifyAuthenticated, setSpotifyAuthenticated] = useState(false);
+  const [song, setSong] = useState();
   let roomCode = props.match.params.roomCode;
   const fetchRoom = async () => {
     try {
@@ -19,7 +22,8 @@ function Room({ leaveRoomCallback, ...props }) {
       setGuestCanPause(data.guest_can_pause);
       setIsHost(data.is_host);
       if (data.is_host) {
-        authenticateSpotify();
+        await authenticateSpotify();
+        await getCurrentSong();
       }
       // setShowSettings(false);
     } catch (error) {
@@ -31,13 +35,22 @@ function Room({ leaveRoomCallback, ...props }) {
   useEffect(() => {
     fetchRoom();
   }, []);
-
+  const getCurrentSong = async () => {
+    try {
+      const res = await axios.get('/spotify/current-song');
+      const data = res.data;
+      setSong(data);
+    } catch (error) {
+      console.log(error);
+      setSong({});
+    }
+  };
   const authenticateSpotify = async () => {
     try {
       const res = await axios.get('/spotify/is-authenticated');
       const data = res.data;
       setSpotifyAuthenticated(data.status);
-            console.log(data);
+      console.log('Authenticated: ', data.status);
 
       if (!data.status) {
         const { url } = await (await axios.get('/spotify/get-auth-url')).data;
@@ -107,6 +120,7 @@ function Room({ leaveRoomCallback, ...props }) {
           Guest Can Pause: {guestCanPause.toString()}
         </Typography>
       </Grid>
+      <MusicPlayer {...song} />
       <Grid item xs={12} align='center'>
         <Typography variant='h6' component='h6'>
           Host: {isHost.toString()}
