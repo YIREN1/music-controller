@@ -8,6 +8,7 @@ function Room({ leaveRoomCallback, ...props }) {
   const [votesToSkip, setVotesToSkip] = useState(defaultVotes);
   const [isHost, setIsHost] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [spotifyAuthenticated, setSpotifyAuthenticated] = useState(false);
   let roomCode = props.match.params.roomCode;
   const fetchRoom = async () => {
     try {
@@ -17,6 +18,9 @@ function Room({ leaveRoomCallback, ...props }) {
       setVotesToSkip(data.votes_to_skip);
       setGuestCanPause(data.guest_can_pause);
       setIsHost(data.is_host);
+      if (data.is_host) {
+        authenticateSpotify();
+      }
       // setShowSettings(false);
     } catch (error) {
       console.log(error);
@@ -27,6 +31,20 @@ function Room({ leaveRoomCallback, ...props }) {
   useEffect(() => {
     fetchRoom();
   }, []);
+
+  const authenticateSpotify = async () => {
+    try {
+      const res = await axios.get('/spotify/is-authenticated');
+      const data = res.data;
+      setSpotifyAuthenticated(data.status);
+            console.log(data);
+
+      if (!data.status) {
+        const { url } = await (await axios.get('/spotify/get-auth-url')).data;
+        window.location.replace(url);
+      }
+    } catch (error) {}
+  };
 
   const updateShowSettings = (value) => {
     setShowSettings(value);
