@@ -14,7 +14,6 @@ function HomePage() {
       try {
         const res = await Axios.get('/api/user-in-room');
         setRoomCode(res.data.code);
-        console.log(res.data);
       } catch (error) {
         console.log(error);
       }
